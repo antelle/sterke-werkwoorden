@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html manifest="app.appcache">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" sizes="192x192" href="favicon.png">
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <title>Sterke Werkwoorden</title>
+  <script src="ow.js"></script>
+  <script>
+  let ow;
+  let answerIx;
+  let total = OwList.length;
+  let totalOk = 0;
+  let totalError = 0;
+  function next() {
+      if (!OwList.length) {
+          const row = document.querySelector('.row');
+          row.innerHTML = `Done! ${totalOk} / ${total}`;
+          row.classList.add('results');
+          document.querySelector('.meaning').innerHTML = '';
+          return;
+      }
+      const ix = Math.floor(Math.random() * OwList.length);
+      ow = OwList[ix];
+      OwList.splice(ix, 1);
+      answerIx = Math.floor(Math.random() * 4);
+      ow.forEach((part, ix) => {
+          if (ix > 3) {
+              document.querySelector('.meaning').innerHTML = part;
+              return;
+          }
+          const value = ix === answerIx ? '' : part;
+          const txt = document.getElementById(`txt${ix}`);
+          txt.readOnly = ix !== answerIx;
+          txt.value = value;
+          if (ix === answerIx) {
+              txt.focus();
+          }
+      });
+  }
+  function onInput(e) {
+      if (e.target.value === ow[answerIx] || e.target.value.indexOf('?') >= 0) {
+          showCorrectAnswer();
+      }
+  }
+  function showCorrectAnswer() {
+      const txt = document.getElementById(`txt${answerIx}`);
+      const isError = txt.value.indexOf('?') >= 0;
+      if (isError) {
+          txt.value = ow[answerIx];
+          txt.classList.add('error');
+          totalError++;
+      } else {
+          txt.classList.add('ok');
+          totalOk++;
+      }
+      txt.readOnly = true;
+      showProgress();
+      setTimeout(function() {
+         txt.classList.remove('ok', 'error');
+         next();
+     }, isError ? 1000 : 300);
+  }
+  function showProgress() {
+      document.getElementById('progress-ok').style.width = (totalOk / total * 100) + '%';
+      document.getElementById('progress-error').style.width = (totalError / total * 100) + '%';
+  }
+  function init() {
+      document.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', onInput);
+      });
+      next();
+  }
+  setTimeout(init);
+  </script>
+  <style>
+  body, html {
+      height: 100%;
+      min-height: 100%;
+  }
+  body {
+      font-family: -apple-system, Helvetica, Arial;
+      padding: 0;
+      margin: 0;
+      font-size: 30px;
+      background: #282B33;
+      display: flex;
+      flex-direction: column;
+  }
+  .row {
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+      padding-top: 2%;
+  }
+  @media screen and (max-width: 800px) {
+      .row {
+          flex-direction: column;
+          justify-content: flex-start;
+      }
+  }
+  .results {
+      padding: 20px;
+      justify-content: center;
+  }
+  .item {
+      padding: 20px;
+      position: relative;
+  }
+  label {
+      display: block;
+      padding: 4px 8px;
+      font-size: 10px;
+      color: #5A606A;
+  }
+  input {
+      display: block;
+      width: 90%;
+      font-size: 30px;
+      padding: 4px 8px;
+      transition: background-color 300ms linear, border-color 300ms linear;
+      outline: none;
+      border-radius: 2px;
+      border: 2px solid #555C66;
+      background: #282B33;
+      color: #ABB2BE;
+  }
+  input[readOnly] {
+      border-color: transparent;
+  }
+  input.ok {
+      background-color: #242E2E;
+      border-color: #74C892;
+  }
+  input.error {
+      background-color: #312426;
+      border-color: #FF644E;
+  }
+  .progress {
+      display: flex;
+  }
+  #progress-ok, #progress-error {
+      height: 2px;
+      width: 0;
+      transition: width 100ms linear;
+  }
+  #progress-ok {
+      background: #54F176;
+      box-shadow: 0 0 3px #242E2E;
+  }
+  #progress-error {
+      background: #FF644E;
+      box-shadow: 0 0 3px #312426;
+  }
+  .meaning {
+      color: #5A606A;
+      text-align: center;
+      padding: 10px;
+      flex-grow: 1;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+  }
+  .footer {
+      color: #5A606A;
+      font-size: 12px;
+      text-align: center;
+      width: 100%;
+      padding: 10px;
+      flex-shrink: 0;
+  }
+  </style>
+</head>
+<body>
+    <div class="progress">
+        <div id="progress-error"></div>
+        <div id="progress-ok"></div>
+    </div>
+    <div class="row">
+        <div class="item">
+            <label for="txt0">Infinitief</label>
+            <input type="text" id="txt0" />
+        </div>
+        <div class="item">
+            <label for="txt0">Verleden tijd enkelvoud</label>
+            <input type="text" id="txt1" />
+        </div>
+        <div class="item">
+            <label for="txt0">Verleden tijd meervoud</label>
+            <input type="text" id="txt2" />
+        </div>
+        <div class="item">
+            <label for="txt0">Voltooid deelwoord</label>
+            <input type="text" id="txt3" />
+        </div>
+    </div>
+    <div class="meaning">
+    </div>
+    <div class="footer">
+        Typ "?" om het antwoord te zien. ⟨⟩ met ❤ door Antelle.
+    </div>
+</body>
+</html>
