@@ -659,7 +659,7 @@ window.OwList = [
     ],
     [
         "scheppen",
-        "shiep",
+        "schiep",
         "schiepen",
         "geschapen",
         "create, shovel, produce"
