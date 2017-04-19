@@ -15,6 +15,7 @@
   let total = OwList.length;
   let totalOk = 0;
   let totalError = 0;
+  let wasIncorrectInput = false;
   function next() {
       if (!OwList.length) {
           const row = document.querySelector('.row');
@@ -27,6 +28,7 @@
       ow = OwList[ix];
       OwList.splice(ix, 1);
       answerIx = Math.floor(Math.random() * 4);
+      wasIncorrectInput = false;
       ow.forEach((part, ix) => {
           if (ix > 3) {
               document.querySelector('.meaning').innerHTML = part;
@@ -42,19 +44,32 @@
       });
   }
   function onInput(e) {
-      if (e.target.value === ow[answerIx] || e.target.value.indexOf('?') >= 0) {
+      if (!localStorage.submitWithReturn && e.target.value === ow[answerIx] ||
+          e.target.value.indexOf('?') >= 0) {
           showCorrectAnswer();
+      }
+  }
+  function onKeyDown(e) {
+      if (localStorage.submitWithReturn && (e.keyCode || e.which) === 13) {
+          const incorrect = e.target.value !== ow[answerIx];
+          wasIncorrectInput = wasIncorrectInput || incorrect;
+          if (incorrect) {
+              const txt = document.getElementById(`txt${answerIx}`);
+              txt.classList.add('error');
+              setTimeout(() => txt.classList.remove('error'), 200);
+          } else {
+              showCorrectAnswer();
+          }
       }
   }
   function showCorrectAnswer() {
       const txt = document.getElementById(`txt${answerIx}`);
       const isError = txt.value.indexOf('?') >= 0;
-      if (isError) {
+      txt.classList.add(isError ? 'error' : 'ok');
+      if (isError || wasIncorrectInput) {
           txt.value = ow[answerIx];
-          txt.classList.add('error');
           totalError++;
       } else {
-          txt.classList.add('ok');
           totalOk++;
       }
       txt.readOnly = true;
@@ -71,8 +86,23 @@
   function init() {
       document.querySelectorAll('input').forEach(input => {
           input.addEventListener('input', onInput);
+          input.addEventListener('keydown', onKeyDown);
       });
+      document.querySelectorAll('.submit-with-return').forEach(check => {
+          check.addEventListener('click', () => {
+              if (localStorage.submitWithReturn) {
+                  delete localStorage.submitWithReturn;
+              } else {
+                  localStorage.submitWithReturn = true;
+              }
+              showSubmitWithReturn();
+          });
+      });
+      showSubmitWithReturn();
       next();
+  }
+  function showSubmitWithReturn() {
+      document.querySelector('.submit-with-return').classList.toggle('active', !!localStorage.submitWithReturn);
   }
   setTimeout(init);
   </script>
@@ -171,6 +201,22 @@
       padding: 10px;
       opacity: .3;
   }
+  .submit-with-return {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      color: #373A43;
+      font-family: monospace;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 100ms ease-out;
+  }
+  .submit-with-return.active, .submit-with-return.active:hover {
+      color: #555C66;
+  }
+  .submit-with-return:hover {
+      color: #3d414b;
+  }
   </style>
 </head>
 <body>
@@ -198,6 +244,7 @@
     </div>
     <div class="meaning">
     </div>
+    <div class="submit-with-return">⏎</div>
     <div class="footer">
         Typ "?" om het antwoord te zien. ⟨⟩ met ❤ door Antelle.
     </div>
